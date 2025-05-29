@@ -14,7 +14,7 @@ const StudioEditor = dynamic(
 
 export default function EditorPage() {
     const editorRef = useRef(null);
-    const userid = 'user_031';
+    const userid = 'user_032';
     //var id = 3;
 
 
@@ -40,7 +40,7 @@ export default function EditorPage() {
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
         const div = doc.querySelector('div');
-        const id = 8;
+        const id = div?.id;
 
         const css = editor.getCss();
         const assets = JSON.stringify(editor.AssetManager.getAll().map(a => a.toJSON()));
@@ -61,8 +61,8 @@ export default function EditorPage() {
                 method: "POST",
                 url: `${API_URL}/grapesjs_project`,
                 data: {
-                    id: '8',
-                    userid: 'user_031',
+                    id,
+                    userid,
                     name: pageName, // Use the current page name
                     html,
                     css,
