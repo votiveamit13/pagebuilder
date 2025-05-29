@@ -126,7 +126,7 @@ export default function EditorPage() {
             <StudioEditor
                 onEditor={onEditorReady}
                 options={{
-                    licenseKey: 'ef60735c4f454f7e8c86873dfddaa0fb1c84fddcb39d4e44a254894fcf163784',
+                    licenseKey: '4f4ac31332114b678bcd6da89a40e8162e6aa7ff23c840d6bf4ec3fd3e04b6dc',
                     storage: {
                         type: 'self',
                         autosaveChanges: 5,
