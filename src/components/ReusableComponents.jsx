@@ -1,5 +1,5 @@
 'use client';
-//git test change 
+
 import { API_URL } from '@/app/config/url';
 import axios from 'axios';
 import { useState } from 'react';
@@ -52,7 +52,6 @@ export default function ReusableComponent({ editor }) {
         data: componentData,
       });
 
-      if (!response.ok) throw new Error("Failed to update component");
 
       alert(`Reusable component "${match.name}" updated successfully.`);
     } catch (err) {
