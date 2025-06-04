@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
 
-  // basePath: '/pagebuilder',
-  // trailingSlash: true,
+  basePath: '/pagebuilder',
+  trailingSlash: true,
 
 };
 
