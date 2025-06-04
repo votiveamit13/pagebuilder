@@ -90,7 +90,11 @@ export default function EditorPage() {
     const assets = JSON.stringify(
       editor.AssetManager.getAll().map((a) => a.toJSON())
     );
-    const components = JSON.stringify(page.getMainComponent().toJSON());
+   const components = JSON.stringify(page.getMainComponent().toJSON());
+    //const components = JSON.stringify(editor.getComponents().toJSON());
+    console.log("Saving Components:", components);
+
+
     const styles = JSON.stringify(editor.getStyle());
 
     try {

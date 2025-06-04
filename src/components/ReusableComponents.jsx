@@ -1,6 +1,7 @@
 'use client';
 
 import { API_URL } from '@/app/config/url';
+import axios from 'axios';
 import { useState } from 'react';
 
 export default function ReusableComponent({ editor }) {
@@ -8,99 +9,102 @@ export default function ReusableComponent({ editor }) {
   const [componentName, setComponentName] = useState('');
   const [componentType, setComponentType] = useState('header');
 
-const updateReusableContent = async () => {
-  if (!editor) return;
+  const updateReusableContent = async () => {
+    if (!editor) return;
 
-  const currentPage = editor.Pages.getSelected();
-  if (!currentPage) return alert("No page selected.");
+    const currentPage = editor.Pages.getSelected();
+    if (!currentPage) return alert("No page selected.");
 
-  const pageName = currentPage.get("name");
-  if (!pageName.startsWith("Reusable: ")) {
-    alert("This is not a reusable component page.");
-    return;
-  }
+    const pageName = currentPage.get("name");
+    if (!pageName.startsWith("Reusable: ")) {
+      alert("This is not a reusable component page.");
+      return;
+    }
 
-  const actualName = pageName.replace("Reusable: ", "");
+    const actualName = pageName.replace("Reusable: ", "");
 
-  // Get all loaded components from GrapesJS or fallback to API
-  const res = await fetch(`${API_URL}/components`);
-  console.log("APIS:", res);
-  const all = await res.json();
-  const match = all.find((c) => c.name === actualName);
+    const res = await axios.get(`${API_URL}/components`);
+    const all = res.data;
+    const match = all.find((c) => c.name === actualName);
 
-  if (!match) {
-    alert("Could not find reusable component in database.");
-    return;
-  }
+    if (!match) {
+      alert("Could not find reusable component in database.");
+      return;
+    }
 
-  const componentData = {
-    name: match.name,
-    type: match.type,
-    html: editor.getHtml(),
-    css: editor.getCss(),
-    components: editor.getComponents().map(c => c.toJSON()),
-  };
+    const componentData = {
+      name: match.name,
+      type: match.type,
+      html: editor.getHtml(),
+      css: editor.getCss(),
+      components: JSON.stringify(editor.getSelected()?.toJSON() || editor.getComponents().toJSON()),
+    };
 
-  try {
-    const response = await fetch(`${API_URL}/components/${match.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(componentData),
-    });
+    try {
+      // const response = await fetch(`${API_URL}/components/${match.id}`, {
+      //   method: 'PUT',
+      //   body: JSON.stringify(componentData),
+      // });
+      console.log(componentData)
+      const response = await axios({
+        method: "PUT",
+        url: `${API_URL}/components/${match.id}`,
+        data: componentData,
+      });
 
-    if (!response.ok) throw new Error("Failed to update component");
+      if (!response.ok) throw new Error("Failed to update component");
 
-    alert(`Reusable component "${match.name}" updated successfully.`);
-  } catch (err) {
-    console.error("Update failed:", err);
-    alert("Failed to update reusable component.");
-  }
-};
-
-
-
-const saveReusable = async () => {
-  if (!editor) return;
-
-  const selected = editor.getSelected();
-  if (!selected) return alert('Please select a component to save.');
-
-  const name = componentName;
-  const type = componentType;
-
-  const componentData = {
-    name,
-    type,
-    html: selected.toHTML(),
-    css: editor.getCss({ component: selected }) || '',
-    components: JSON.stringify(selected.toJSON()),
+      alert(`Reusable component "${match.name}" updated successfully.`);
+    } catch (err) {
+      console.error("Update failed:", err);
+      alert("Failed to update reusable component.");
+    }
   };
 
 
-  const res = await fetch(`${API_URL}/components`);
-  const all = await res.json();
-  const existing = all.find(c => c.name === name && c.type === type);
 
-  if (existing) {
-    await fetch(`${API_URL}/components/${existing.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(componentData),
-    });
-    alert('Reusable component updated.');
-  } else {
-    await fetch(`${API_URL}/components`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(componentData),
-    });
-    alert('Reusable component saved.');
-  }
+  const saveReusable = async () => {
+    if (!editor) return;
 
-  setComponentName('');
-  setComponentType('header');
-  setShowModal(false);
-};
+    const selected = editor.getSelected();
+    if (!selected) return alert('Please select a component to save.');
+
+    const name = componentName;
+    const type = componentType;
+
+    const componentData = {
+      name,
+      type,
+      html: selected.toHTML(),
+      css: editor.getCss({ component: selected }) || '',
+      components: JSON.stringify(selected.toJSON()),
+    };
+
+
+    const res = await fetch(`${API_URL}/components`);
+    const all = await res.json();
+    const existing = all.find(c => c.name === name && c.type === type);
+
+    if (existing) {
+      await fetch(`${API_URL}/components/${existing.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(componentData),
+      });
+      alert('Reusable component updated.');
+    } else {
+      await fetch(`${API_URL}/components`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(componentData),
+      });
+      alert('Reusable component saved.');
+    }
+
+    setComponentName('');
+    setComponentType('header');
+    setShowModal(false);
+  };
 
 
   return (
@@ -139,7 +143,7 @@ const saveReusable = async () => {
 
 
       {showModal && (
-                <div style={{
+        <div style={{
           position: "fixed",
           top: "50%",
           left: "50%",
