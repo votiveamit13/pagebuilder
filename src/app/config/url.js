@@ -1,1 +1,1 @@
-export const API_URL = "https://votivetechnology.in/coachsparkle/api";
+export const API_URL = "http://localhost/coach-backend/api";

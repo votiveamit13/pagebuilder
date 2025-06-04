@@ -7,6 +7,7 @@ import '@grapesjs/studio-sdk/style';
 import axios from 'axios';
 import { API_URL } from '../config/url';
 
+
 const StudioEditor = dynamic(
     () => import('@grapesjs/studio-sdk/react').then(mod => mod.default),
     { ssr: false }
@@ -71,7 +72,7 @@ export default function EditorPage() {
                     styles,
                 },
             });
-            // await axios.post(`${API_URL}/grapesjs_project`, {
+            // await axios.post(${API_URL}/grapesjs_project, {
             //     id: 3,
             //     userid: 'user_031',
             //     name: pageName, // Use the current page name

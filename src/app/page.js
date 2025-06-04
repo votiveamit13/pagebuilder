@@ -1,154 +1,154 @@
-'use client';
-
-import React, { useRef, useEffect, useState } from 'react';
-import dynamic from 'next/dynamic';
-import '@grapesjs/studio-sdk/style';
-
-import axios from 'axios';
+"use client";
+import React, { useState } from 'react';
 import { API_URL } from './config/url';
 
-const StudioEditor = dynamic(
-    () => import('@grapesjs/studio-sdk/react').then(mod => mod.default),
-    { ssr: false }
-);
+const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
-export default function EditorPage() {
-    const editorRef = useRef(null);
-    const userid = 'user_032';
-    //var id = 3;
+const handleLogin = async (e) => {
+  e.preventDefault();
+
+  if (!email || !password) {
+    setError('Both fields are required!');
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/builder-login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: email,
+        password: password,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      console.log('Login successful:', data);
+
+      localStorage.setItem('token', data.token);
+        localStorage.setItem('user', data.user);
+      alert('Login successful!');
+      window.location.href = '/pagebuilder';
+
+      setEmail('');
+      setPassword('');
+      setError('');
+    } else {
+
+      setError(data.message || 'Login failed');
+    }
+  } catch (err) {
+    console.error('Login error:', err);
+    setError('Something went wrong. Please try again later.');
+  }
+};
 
 
+  return (
+    <div style={styles.wrapper}>
+      <div style={styles.card}>
+        <h2 style={styles.title}>Welcome Back</h2>
+        <p style={styles.subtitle}>Please login to your account</p>
 
-    const onEditorReady = (editor) => {
-        editorRef.current = editor;
+        <form onSubmit={handleLogin} style={styles.form}>
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            style={styles.input}
+            onChange={(e) => setEmail(e.target.value)}
+          />
 
-        // Get current page name on editor ready
-        const pageName = editor.Pages.getSelected()?.get('name');
-        if (pageName) {
-            alert(`Current page name: ${pageName}`);
-        }
-    };
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            style={styles.input}
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
-    const saveToBackend = async () => {
-        const editor = editorRef.current;
-        if (!editor) {
-            console.error('Editor not ready');
-            return;
-        }
+          {error && <p style={styles.error}>{error}</p>}
 
-        const html = editor.getHtml();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const div = doc.querySelector('div');
-        const id = div?.id;
-
-        const css = editor.getCss();
-        const assets = JSON.stringify(editor.AssetManager.getAll().map(a => a.toJSON()));
-        const components = JSON.stringify(editor.getComponents().map(c => c.toJSON()));
-        const styles = JSON.stringify(editor.getStyle());
-
-        // ✅ Get current page name
-        const pageName = editor.Pages.getSelected()?.get('name') || 'Untitled';
+          <button type="submit" style={styles.button}>Login</button>
+        </form>
 
 
+      </div>
+    </div>
+  );
+};
 
-        try {
+const styles = {
+  wrapper: {
+    minHeight: '100vh',
+    background: 'linear-gradient(to right, #74ebd5, #9face6)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  card: {
+    backgroundColor: '#fff',
+    padding: '40px',
+    borderRadius: '12px',
+    boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+    textAlign: 'center',
+    width: '100%',
+    maxWidth: '400px',
+  },
+  title: {
+    marginBottom: '10px',
+    fontSize: '24px',
+    color: '#333',
+  },
+  subtitle: {
+    marginBottom: '20px',
+    color: '#777',
+  },
+  form: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '15px',
+  },
+  input: {
+    padding: '12px',
+    fontSize: '16px',
+    border: '1px solid #ccc',
+    borderRadius: '8px',
+    transition: 'border 0.3s ease',
+    outline: 'none',
+    color: 'black',
+  },
+  error: {
+    color: 'red',
+    fontSize: '14px',
+    margin: 0,
+  },
+  button: {
+    padding: '12px',
+    backgroundColor: '#4a69bd',
+    color: '#fff',
+    fontSize: '16px',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    transition: 'background 0.3s ease',
+  },
+  footerText: {
+    marginTop: '20px',
+    fontSize: '14px',
+    color: '#555',
+  },
+  link: {
+    color: '#4a69bd',
+    textDecoration: 'none',
+  },
+};
 
-            const response = await axios({
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                method: "POST",
-                url: `${API_URL}/grapesjs_project`,
-                data: {
-                    id,
-                    userid,
-                    name: pageName, // Use the current page name
-                    html,
-                    css,
-                    assets,
-                    components,
-                    styles,
-                },
-            });
-            // await axios.post(`${API_URL}/grapesjs_project`, {
-            //     id: 3,
-            //     userid: 'user_031',
-            //     name: pageName, // Use the current page name
-            //     html,
-            //     css,
-            //     assets,
-            //     components,
-            //     styles,
-            // });
-            console.log(response, 'Project saved successfully');
-        } catch (error) {
-            console.error('Error saving project:', error.response?.data || error.message);
-        }
-    };
-
-    const loadFromBackend = async () => {
-
-        try {
-            const response = await axios.get(`${API_URL}/grapesjs_project/load/3/${userid}`);
-            const projectData = response.data.projectData;
-
-            if (!projectData || !projectData.pages.length) return null;
-
-            const pagesWithParsedComponents = projectData.pages.map(page => {
-                let parsedComponent;
-                try {
-                    parsedComponent = JSON.parse(page.component);
-                } catch (e) {
-                    console.error('Failed to parse components JSON for page', page.name, e);
-                    parsedComponent = '<h1>Failed to load page content</h1>';
-                }
-
-                return {
-                    ...page,
-                    component: parsedComponent,
-                };
-            });
-
-            return {
-                ...projectData,
-                pages: pagesWithParsedComponents,
-            };
-        } catch (error) {
-            console.error('Error loading project:', error.response?.data || error.message);
-            return null;
-        }
-    };
-
-    if (!userid) return <div>Loading user...</div>;
-    return (
-        <div style={{ height: '100vh' }}>
-            <StudioEditor
-                onEditor={onEditorReady}
-                options={{
-                    licenseKey: '4f4ac31332114b678bcd6da89a40e8162e6aa7ff23c840d6bf4ec3fd3e04b6dc',
-                    storage: {
-                        type: 'self',
-                        autosaveChanges: 5,
-                        onSave: async () => {
-                            await saveToBackend();
-                        },
-                        onLoad: async () => {
-                            const project = await loadFromBackend();
-                            return {
-                                project: project || {
-                                    pages: [{ name: 'Home', component: '<h1>New Project</h1>' }],
-                                },
-                            };
-                        },
-                    },
-                    project: {
-                        default: {
-                            pages: [{ name: 'Home', component: '<h1>Fallback Project</h1>' }],
-                        },
-                    },
-                }}
-            />
-        </div>
-    );
-}
+export default Login;
