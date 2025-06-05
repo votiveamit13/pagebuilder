@@ -84,23 +84,20 @@ export default function EditorPage() {
       return;
     }
 
-    const pageName = page.get("name") || "Home";
+    const pageName = page.get("name");
+    console.log(pageName,'pageName')
     const html = editor.getHtml();
     const css = editor.getCss();
     const assets = JSON.stringify(
       editor.AssetManager.getAll().map((a) => a.toJSON())
     );
-   const components = JSON.stringify(page.getMainComponent().toJSON());
-    //const components = JSON.stringify(editor.getComponents().toJSON());
-    console.log("Saving Components:", components);
-
-
+    const components = JSON.stringify(page.getMainComponent().toJSON());
     const styles = JSON.stringify(editor.getStyle());
 
     try {
       const response = await axios({
         method: "POST",
-        url: `${API_URL}/grapesjs_project`,
+        url: `${API_URL}/grapesjs_project/${pageName}`,
         headers: {
           "Content-Type": "application/json",
         },
@@ -192,6 +189,7 @@ export default function EditorPage() {
           id: comp.id,
           name: `Reusable: ${comp.name}`,
           component: parsedComp,
+          css: comp.css || "",
         };
       });
 
